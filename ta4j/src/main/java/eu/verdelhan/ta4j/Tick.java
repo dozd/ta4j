@@ -122,6 +122,30 @@ public class Tick {
      * @param closePrice the close price of the tick period
      * @param volume the volume of the tick period
      */
+    public Tick(Period timePeriod, DateTime endTime, Decimal openPrice, Decimal highPrice, Decimal lowPrice, Decimal closePrice, Decimal volume, Decimal amount, int trades) {
+        checkTimeArguments(timePeriod, endTime);
+        this.timePeriod = timePeriod;
+        this.endTime = endTime;
+        this.beginTime = endTime.minus(timePeriod);
+        this.openPrice = openPrice;
+        this.maxPrice = highPrice;
+        this.minPrice = lowPrice;
+        this.closePrice = closePrice;
+        this.volume = volume;
+        this.amount = amount;
+        this.trades = trades;
+    }
+
+    /**
+     * Constructor.
+     * @param timePeriod the time period
+     * @param endTime the end time of the tick period
+     * @param openPrice the open price of the tick period
+     * @param highPrice the highest price of the tick period
+     * @param lowPrice the lowest price of the tick period
+     * @param closePrice the close price of the tick period
+     * @param volume the volume of the tick period
+     */
     public Tick(Period timePeriod, DateTime endTime, Decimal openPrice, Decimal highPrice, Decimal lowPrice, Decimal closePrice, Decimal volume) {
         checkTimeArguments(timePeriod, endTime);
         this.timePeriod = timePeriod;
