@@ -369,7 +369,11 @@ public final class Decimal implements Comparable<Decimal> {
         }
         return delegate.doubleValue();
     }
-
+    
+    public BigDecimal toBigDecimal() {
+        return delegate;
+    }
+ 
     @Override
     public String toString() {
         if (this == NaN) {

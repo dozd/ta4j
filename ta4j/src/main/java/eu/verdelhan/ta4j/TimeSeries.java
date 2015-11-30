@@ -153,7 +153,10 @@ public class TimeSeries {
         }
         return ticks.get(innerIndex);
     }
-
+    
+    public List<Tick> getTicks() {
+        return ticks;
+    }
     /**
      * @return the first tick of the series
      */
