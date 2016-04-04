@@ -1,18 +1,18 @@
 /**
  * The MIT License (MIT)
- *
+ * <p/>
  * Copyright (c) 2014-2015 Marc de Verdelhan & respective authors (see AUTHORS)
- *
+ * <p/>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- *
+ * <p/>
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *
+ * <p/>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -25,49 +25,35 @@ package eu.verdelhan.ta4j.indicators.helpers;
 import eu.verdelhan.ta4j.Decimal;
 import eu.verdelhan.ta4j.Indicator;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.slf4j.LoggerFactory;
 
 /**
  * Average loss indicator.
- * <p>
+ * <p/>
  */
-public class AverageLossIndicator extends CachedIndicator<Decimal> {
+public class AverageLossIndicatorSlow extends CachedIndicator<Decimal> {
+
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AverageLossIndicatorSlow.class);
 
     private final Indicator<Decimal> indicator;
 
     private final int timeFrame;
 
-    public AverageLossIndicator(Indicator<Decimal> indicator, int timeFrame) {
+    public AverageLossIndicatorSlow(Indicator<Decimal> indicator, int timeFrame) {
         super(indicator);
         this.indicator = indicator;
         this.timeFrame = timeFrame;
     }
 
-    private Decimal sum = Decimal.ZERO;
-    private Set<Integer> ticksInSum = new HashSet<>();
-
     @Override
     protected Decimal calculate(int index) {
-        Set<Integer> ticksToSubtract = new HashSet<>(ticksInSum);
+        Decimal result = Decimal.ZERO;
         for (int i = Math.max(1, index - timeFrame + 1); i <= index; i++) {
-            if (!ticksInSum.contains(i)) {
-                final Decimal valueToSum = getValueToSum(i);
-                sum = sum.plus(valueToSum);
-                ticksInSum.add(i);
-            }
-            ticksToSubtract.remove(i);
-
-        }
-        for (Integer i : ticksToSubtract) {
             Decimal valueToSum = getValueToSum(i);
-            sum = sum.minus(valueToSum);
-            ticksInSum.remove(i);
+            result = result.plus(valueToSum);
         }
-
         final int realTimeFrame = Math.min(timeFrame, index + 1);
-        return sum.dividedBy(Decimal.valueOf(realTimeFrame));
+        return result.dividedBy(Decimal.valueOf(realTimeFrame));
     }
 
     private Decimal getValueToSum(int i) {
