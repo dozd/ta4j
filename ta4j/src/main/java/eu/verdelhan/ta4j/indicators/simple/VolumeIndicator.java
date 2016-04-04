@@ -25,6 +25,7 @@ package eu.verdelhan.ta4j.indicators.simple;
 import eu.verdelhan.ta4j.Decimal;
 import eu.verdelhan.ta4j.TimeSeries;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
+import eu.verdelhan.ta4j.indicators.RollingSum;
 
 /**
  * Volume indicator.
@@ -35,7 +36,9 @@ public class VolumeIndicator extends CachedIndicator<Decimal> {
     private TimeSeries series;
 
     private int timeFrame;
-    
+
+    private RollingSum rollingSum;
+
     public VolumeIndicator(TimeSeries series) {
         this(series, 1);
     }
@@ -44,15 +47,19 @@ public class VolumeIndicator extends CachedIndicator<Decimal> {
         super(series);
         this.series = series;
         this.timeFrame = timeFrame;
+        this.rollingSum = new RollingSum() {
+            @Override
+            public Decimal getValueToSum(int i) {
+                return series.getTick(i).getVolume();
+            }
+        };
     }
 
     @Override
     protected Decimal calculate(int index) {
         int startIndex = Math.max(0, index - timeFrame + 1);
         Decimal sumOfVolume = Decimal.ZERO;
-        for (int i = startIndex; i <= index; i++) {
-            sumOfVolume = sumOfVolume.plus(series.getTick(i).getVolume());
-        }
+        sumOfVolume = rollingSum.computeSum(startIndex, index);
         return sumOfVolume;
     }
 }

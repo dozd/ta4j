@@ -26,6 +26,7 @@ package eu.verdelhan.ta4j.indicators.volume;
 import eu.verdelhan.ta4j.Decimal;
 import eu.verdelhan.ta4j.TimeSeries;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
+import eu.verdelhan.ta4j.indicators.RollingSum;
 import eu.verdelhan.ta4j.indicators.helpers.CloseLocationValueIndicator;
 import eu.verdelhan.ta4j.indicators.simple.VolumeIndicator;
 
@@ -45,21 +46,27 @@ public class ChaikinMoneyFlowIndicator extends CachedIndicator<Decimal> {
     
     private int timeFrame;
 
+    private final RollingSum rollingSum;
+
     public ChaikinMoneyFlowIndicator(TimeSeries series, int timeFrame) {
         super(series);
         this.series = series;
         this.timeFrame = timeFrame;
         this.clvIndicator = new CloseLocationValueIndicator(series);
         this.volumeIndicator = new VolumeIndicator(series, timeFrame);
+        this.rollingSum = new RollingSum() {
+            @Override
+            public Decimal getValueToSum(int i) {
+                return getMoneyFlowVolume(i);
+            }
+        };
     }
 
     @Override
     protected Decimal calculate(int index) {
         int startIndex = Math.max(0, index - timeFrame + 1);
         Decimal sumOfMoneyFlowVolume = Decimal.ZERO;
-        for (int i = startIndex; i <= index; i++) {
-            sumOfMoneyFlowVolume = sumOfMoneyFlowVolume.plus(getMoneyFlowVolume(i));
-        }
+        sumOfMoneyFlowVolume = rollingSum.computeSum(startIndex, index);
         Decimal sumOfVolume = volumeIndicator.getValue(index);
         
         return sumOfMoneyFlowVolume.dividedBy(sumOfVolume);

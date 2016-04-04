@@ -22,9 +22,10 @@
  */
 package eu.verdelhan.ta4j.indicators.trackers;
 
-import eu.verdelhan.ta4j.Indicator;
 import eu.verdelhan.ta4j.Decimal;
+import eu.verdelhan.ta4j.Indicator;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
+import eu.verdelhan.ta4j.indicators.RollingSum;
 
 /**
  * Simple moving average (SMA) indicator.
@@ -36,19 +37,24 @@ public class SMAIndicator extends CachedIndicator<Decimal> {
 
     private final int timeFrame;
 
+    private final RollingSum rollingSum;
+
     public SMAIndicator(Indicator<Decimal> indicator, int timeFrame) {
         super(indicator);
         this.indicator = indicator;
         this.timeFrame = timeFrame;
+        this.rollingSum = new RollingSum() {
+            @Override
+            public Decimal getValueToSum(int i) {
+                return indicator.getValue(i);
+            }
+        };
     }
 
     @Override
     protected Decimal calculate(int index) {
         Decimal sum = Decimal.ZERO;
-        for (int i = Math.max(0, index - timeFrame + 1); i <= index; i++) {
-            sum = sum.plus(indicator.getValue(i));
-        }
-
+        sum = rollingSum.computeSum(Math.max(0, index - timeFrame + 1), index);
         final int realTimeFrame = Math.min(timeFrame, index + 1);
         return sum.dividedBy(Decimal.valueOf(realTimeFrame));
     }

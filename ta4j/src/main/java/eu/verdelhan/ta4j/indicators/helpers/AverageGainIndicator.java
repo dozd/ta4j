@@ -25,6 +25,7 @@ package eu.verdelhan.ta4j.indicators.helpers;
 import eu.verdelhan.ta4j.Decimal;
 import eu.verdelhan.ta4j.Indicator;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
+import eu.verdelhan.ta4j.indicators.RollingSum;
 
 /**
  * Average gain indicator.
@@ -36,46 +37,30 @@ public class AverageGainIndicator extends CachedIndicator<Decimal> {
 
     private final int timeFrame;
 
+    private final RollingSum rollingSum;
+
     public AverageGainIndicator(Indicator<Decimal> indicator, int timeFrame) {
         super(indicator);
         this.indicator = indicator;
         this.timeFrame = timeFrame;
+        this.rollingSum = new RollingSum() {
+            @Override
+            public Decimal getValueToSum(int i) {
+                final Decimal value;
+                if (indicator.getValue(i - 1).isLessThan(indicator.getValue(i))) {
+                    return indicator.getValue(i).minus(indicator.getValue(i - 1));
+                } else {
+                    return Decimal.ZERO;
+                }
+            }
+        };
     }
-
-    private Decimal rollingSum = null;
-    private Integer sumFromIncl = null;
-    private Integer sumToExcl = null;
 
     @Override
     protected Decimal calculate(int index) {
-        Decimal result = Decimal.ZERO;
-        int from = Math.max(1, index - timeFrame + 1);
-        int to = index;
-        if (rollingSum == null) {
-            sumFromIncl = from;
-            sumToExcl = from;
-            rollingSum = Decimal.ZERO;
-        }
-        for (int i = sumFromIncl; i < from; i++) {
-            rollingSum = rollingSum.minus(getIndicatorValue(i));
-            sumFromIncl = i + 1;
-            }
-        for (int i = sumToExcl; i <= to; i++) {
-            rollingSum = rollingSum.plus(getIndicatorValue(i));
-            sumToExcl = i + 1;
-        }
+        Decimal result = rollingSum.computeSum(Math.max(1, index - timeFrame + 1), index);
         final int realTimeFrame = Math.min(timeFrame, index + 1);
-        return rollingSum.dividedBy(Decimal.valueOf(realTimeFrame));
-    }
-
-    private Decimal getIndicatorValue(int i) {
-        final Decimal value;
-        if (indicator.getValue(i - 1).isLessThan(indicator.getValue(i))) {
-            value = indicator.getValue(i).minus(indicator.getValue(i - 1));
-        } else {
-            value = Decimal.ZERO;
-        }
-        return value;
+        return result.dividedBy(Decimal.valueOf(realTimeFrame));
     }
 
     @Override
