@@ -23,13 +23,14 @@
 package eu.verdelhan.ta4j;
 
 import eu.verdelhan.ta4j.Order.OrderType;
-import java.util.ArrayList;
-import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Sequence of {@link Tick ticks} separated by a predefined period (e.g. 15 minutes, 1 day, etc.)
@@ -142,7 +143,7 @@ public class TimeSeries {
                 // Cannot return the i-th tick if i < 0
                 throw new IndexOutOfBoundsException(buildOutOfBoundsMessage(this, i));
             }
-            log.trace("Time series `{}` ({} ticks): tick {} already removed, use {}-th instead", name, ticks.size(), i, removedTicksCount);
+            log.warn("Time series `{}` ({} ticks): tick {} already removed, use {}-th instead", name, ticks.size(), i, removedTicksCount);
             if (ticks.isEmpty()) {
                 throw new IndexOutOfBoundsException(buildOutOfBoundsMessage(this, removedTicksCount));
             }
