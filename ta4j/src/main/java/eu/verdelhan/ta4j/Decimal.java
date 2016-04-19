@@ -85,7 +85,11 @@ public final class Decimal implements Comparable<Decimal> {
     }
 
     private Decimal(BigDecimal val) {
-        this(val.toString());
+        if (val.precision() == MATH_CONTEXT.getPrecision()) {
+            this.delegate = val;
+        } else {
+            this.delegate = new BigDecimal(val.toString(), MATH_CONTEXT);
+        }
     }
 
     /**
